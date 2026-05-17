@@ -1,0 +1,226 @@
+\documentclass[11pt, a4paper]{article}
+
+% Para usar caracteres especiales como la eñe y la tilde.
+\usepackage[utf8]{inputenc}
+% Para establecer el idioma del documento:
+\usepackage[spanish]{babel}
+% Para establecer los margenes de la hoja:
+\usepackage[margin=0.8cm, landscape]{geometry}
+% Para dividir la hoja en columnas y aprovechar mejor el espacio:
+\usepackage{multicol}
+% Para crear cajas elegantes:
+\usepackage{tcolorbox}
+% Para crear tablas que se ajustan al ancho de columna
+\usepackage{tabularx}
+%
+\usepackage{booktabs}
+% Para darle color a las tablas:
+\usepackage[table]{xcolor}
+
+\title{
+    \textbf{Hoja de referencia MIPS32}
+}
+\author{Ronald Montilla}
+\date{\today}
+
+\begin{document}
+{\centering \textbf{Hoja de Refencia MIPS32 - Ronald Montilla} \\}
+    \begin{multicols*}{2}
+
+        \begin{tcolorbox}[
+        colback=white, 
+        colframe=blue!40!black, 
+        title= {\centering \textbf{Repertorio de Instrucciones MIPS32} },
+        fonttitle=\bfseries,
+        size=small
+        ]
+            \rowcolors{2}{black!5}{white}
+            \begin{tabularx}{\linewidth}{Xcc}
+                \toprule
+                \textbf{Nombre} & \textbf{Mnemónico} & \textbf{Formato} \\
+                \midrule
+                Suma & \texttt{add} & R \\
+                Suma inmediata & \texttt{addi} & I \\
+                Suma inm. sin signo & \texttt{addiu} & I \\
+                Suma sin signo & \texttt{addu} & R \\
+                And & \texttt{and} & R \\
+                And inmediato & \texttt{andi} & I \\
+                Salto si igual & \texttt{beq} & I \\
+                Salto si distinto & \texttt{bne} & I \\
+                Salto incondicional & \texttt{j} & J \\
+                Saltar y enlazar & \texttt{jal} & J \\
+                Salto con registro & \texttt{jr} & R \\
+                Carga de un byte sin signo & \texttt{lbu} & I \\
+                Carga de media palabra sin signo & \texttt{lhu} & I \\
+                Carga enlazada & \texttt{ll} & I \\
+                Carga superior inm. & \texttt{lui} & I \\
+                Carga de una palabra & \texttt{lw} & I \\
+                Nor & \texttt{nor} & R \\
+                Or & \texttt{or} & R \\
+                Or inmediato & \texttt{ori} & I \\
+                Fijar si menor que & \texttt{slt} & R \\
+                Fijar si menor que inm. & \texttt{slti} & I \\
+                Fijar si menor que inm. sin signo & \texttt{sltiu} & I \\
+                Fijar si menor que sin signo & \texttt{sltu} & R \\
+                Desplazamiento lógico a la izquierda & \texttt{sll} & R \\
+                Desplazamiento lógico a la derecha & \texttt{srl} & R \\
+                Almacenamiento de un byte & \texttt{sb} & I \\
+                Almacenamiento condicional & \texttt{sc} & I \\
+                Almacenamiento de media palabra & \texttt{sh} & I \\
+                Almacenamiento de una palabra & \texttt{sw} & I \\
+                Resta & \texttt{sub} & R \\
+                Resta sin signo & \texttt{subu} & R \\
+            \end{tabularx}
+        \end{tcolorbox}
+
+        \begin{tcolorbox}[
+        colback=white, 
+        colframe=blue!40!black, 
+        title= {\centering \textbf{Repertorio de Instrucciones MIPS32 (Continuación)} },
+        fonttitle=\bfseries,
+        size=small
+        ]
+        \rowcolors{2}{black!5}{white}
+            \begin{tabularx}{\linewidth}{Xcc}
+                \toprule
+                \textbf{Nombre} & \textbf{Mnemónico} & \textbf{Formato} \\
+                \midrule
+                Multiplicación & \texttt{mult} & R \\
+                Multiplicación sin signo & \texttt{multu} & R \\
+                División & \texttt{div} & R \\
+                División sin signo & \texttt{divu} & R \\
+                Mover desde HI & \texttt{mfhi} & R \\
+                Mover hacia HI & \texttt{mthi} & R \\
+                Mover desde LO & \texttt{mflo} & R \\
+                Mover hacia LO & \texttt{mtlo} & R \\
+                Y inmediato & \texttt{andi} & I \\
+                O exclusivo & \texttt{xor} & R \\
+                O exclusivo inmediato & \texttt{xori} & I \\
+                Desplazamiento variable a la izq. & \texttt{sllv} & R \\
+                Desplazamiento variable a la der. & \texttt{srlv} & R \\
+                Desplazamiento aritmético a la der. & \texttt{sra} & R \\
+                Desplazamiento aritmético var. a la der. & \texttt{srav} & R \\
+                Saltar y enlazar registro & \texttt{jalr} & R \\
+                \bottomrule
+            \end{tabularx}
+        \end{tcolorbox}
+        
+        \begin{tcolorbox}[
+        colback=white, % Fondo interior de la caja
+        colframe=blue!40!black, % Color del borde y título
+        title= {\centering \textbf{Banco de Registros MIPS32} },
+        fonttitle=\bfseries,
+        size=small
+        ]
+         % Con rowcolors establezco los colores de las lineas pares e impares de la tabla.
+        \rowcolors{2}{black!5}{white}
+            \begin{tabularx}{\linewidth}{ccX}
+                \toprule
+                \textbf{Numero} & \textbf{Nombre} & \textbf{Uso} \\
+                \midrule
+                \texttt{\$0} & \texttt{\$zero} & Simpre vale 0 \\
+                \texttt{\$1} & \texttt{\$at} & Reservado para el ensamblador. \\
+                \texttt{\$2-\$3} & \texttt{\$v0-\$v1} & Valores de retorno. \\
+                \texttt{\$4-\$7} & \texttt{\$a0-\$a3} & Argumentos.  \\
+                \texttt{\$8-\$15} & \texttt{\$t0-\$t7} & Temporales. \\
+                \texttt{\$16-\$23} & \texttt{\$s0-\$s7} & Salvados. \\
+                \texttt{\$24-\$25} & \texttt{\$t8-\$t9} & Temporales adicionales. \\
+                \texttt{\$26-\$27} & \texttt{\$k0-\$k1} & Kernel \\
+                \texttt{\$28} & \texttt{\$gp} & Global Pointer. \\
+                \texttt{\$29} & \texttt{\$sp} & Stack Pointer.  \\
+                \texttt{\$30} & \texttt{\$fp} o \texttt{\$s8} & Frame Pointer.  \\
+                \texttt{\$31} & \texttt{\$ra} & Return Address. \\
+            \end{tabularx}
+        \end{tcolorbox}
+        \vfill\null\columnbreak
+
+        \begin{tcolorbox}[
+        colback=white, % Fondo interior de la caja
+        colframe=blue!40!black, % Color del borde y título
+        title= {\centering \textbf{Formatos Básico de Instrucciones} },
+        fonttitle=\bfseries,
+        size=small
+        ]
+            \textbf{R}
+            \begin{tabular}{|c|c|c|c|c|c|}
+                \hline
+                op & rs & rt & rd & d & func \\
+                \hline
+                \multicolumn{1}{c}{\tiny 6 bits} &
+                \multicolumn{1}{c}{\tiny 5 bits} &
+                \multicolumn{1}{c}{\tiny 5 bits} &
+                \multicolumn{1}{c}{\tiny 5 bits} &
+                \multicolumn{1}{c}{\tiny 5 bits} &
+                \multicolumn{1}{c}{\tiny 6 bits} \\
+            \end{tabular} \\
+            \textbf{I}
+            \begin{tabular}{|c|c|c|c|}
+                \hline
+                op & rs & rt & const-addr \\
+                \hline
+                 \multicolumn{1}{c}{\tiny 6 bits} &
+                \multicolumn{1}{c}{\tiny 5 bits} &
+                \multicolumn{1}{c}{\tiny 5 bits} &
+                \multicolumn{1}{c}{\tiny 16 bits} \\
+            \end{tabular} \\
+            \textbf{J}
+            \begin{tabular}{|c|c|}
+                \hline
+                op & addr  \\
+                \hline
+                \multicolumn{1}{c}{\tiny 6 bits} &
+                \multicolumn{1}{c}{\tiny 26 bits} \\
+            \end{tabular}
+        \end{tcolorbox}
+
+        \begin{tcolorbox}[
+        colback=white, % Fondo interior de la caja
+        colframe=blue!40!black, % Color del borde y título
+        title= {\centering \textbf{Formatos de Instrucción Punto Flotante} },
+        fonttitle=\bfseries,
+        size=small
+        ]
+            \textbf{FR}
+            \begin{tabular}{|c|c|c|c|c|c|}
+                \hline
+                op & fmt & ft & fs & fd & func \\
+                \hline
+            \end{tabular} \\
+            \textbf{FI}
+            \begin{tabular}{|c|c|c|c|}
+                \hline
+                op & fmt & ft & inm \\
+                \hline
+            \end{tabular} \\
+        \end{tcolorbox}
+
+        \begin{tcolorbox}[
+        colback=white, 
+        colframe=blue!40!black, 
+        title= {\centering \textbf{Pseudoinstrucciones MIPS32} },
+        fonttitle=\bfseries,
+        size=small
+        ]
+        \rowcolors{2}{black!5}{white}
+            \begin{tabularx}{\linewidth}{Xcc}
+                \toprule
+                \textbf{Nombre} & \textbf{Mnemónico} & \textbf{Formato} \\
+                \midrule
+                Carga de dirección & \texttt{la} & I \\
+                Carga inmediata & \texttt{li} & I \\
+                Mover & \texttt{move} & R \\
+                No operación & \texttt{nop} & R \\
+                Negar & \texttt{neg} & R \\
+                Negar sin signo & \texttt{negu} & R \\
+                Not (Inversión bit a bit) & \texttt{not} & R \\
+                Salto si es mayor o igual que & \texttt{bge} & I \\
+                Salto si es mayor que & \texttt{bgt} & I \\
+                Salto si es menor o igual que & \texttt{ble} & I \\
+                Salto si es menor que & \texttt{blt} & I \\
+                \bottomrule
+            \end{tabularx}
+        \end{tcolorbox}
+        
+    \end{multicols*}
+
+\end{document}
