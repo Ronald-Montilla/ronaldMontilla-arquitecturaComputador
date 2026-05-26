@@ -1,0 +1,142 @@
+\documentclass[11pt, a4paper]{article}
+
+% Paquetes básicos
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[spanish]{babel}
+\usepackage[margin=0.8cm, landscape]{geometry}
+\usepackage{multicol}
+\usepackage{tcolorbox}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+
+\title{\textbf{Formulario del Capítulo 1: Abstracciones y Tecnología de los Computadores}}
+\author{Ronald Montilla}
+\date{\today}
+
+\begin{document}
+{\centering \Large \textbf{Formulario Capítulo 1 - Estructura y Diseño de Computadores} \\[0.2cm]}
+{\centering \normalsize \textbf{Basado en el libro de Patterson y Hennessy} \\ \vspace{0.4cm}}
+
+    \begin{multicols*}{2}
+
+        \begin{tcolorbox}[
+        colback=white, 
+        colframe=blue!40!black, 
+        title= {\centering \textbf{Prestaciones y Tiempo de Ejecución} },
+        fonttitle=\bfseries,
+        size=small
+        ]
+        \begin{itemize}
+            \item \textbf{Prestaciones:}
+            $$\text{Prestaciones}_X = \frac{1}{\text{Tiempo de ejecución}_X}$$
+            \item \textbf{Rendimiento relativo (X es $n$ veces más rápida que Y):}
+            $$n = \frac{\text{Prestaciones}_X}{\text{Prestaciones}_Y} = \frac{\text{Tiempo de ejecución}_Y}{\text{Tiempo de ejecución}_X}$$
+        \end{itemize}
+        \end{tcolorbox}
+
+        \begin{tcolorbox}[
+        colback=white, 
+        colframe=blue!40!black, 
+        title= {\centering \textbf{Tiempo de CPU} },
+        fonttitle=\bfseries,
+        size=small
+        ]
+        \begin{itemize}
+            \item \textbf{Basado en tiempo de ciclo:}
+            $$\text{Tiempo de CPU} = \text{Ciclos de reloj de CPU} \times \text{Tiempo de ciclo de reloj}$$
+            \item \textbf{Basado en frecuencia:}
+            $$\text{Tiempo de CPU} = \frac{\text{Ciclos de reloj de CPU}}{\text{Frecuencia de reloj}}$$
+        \end{itemize}
+        \end{tcolorbox}
+
+        \begin{tcolorbox}[
+        colback=white, 
+        colframe=blue!40!black, 
+        title= {\centering \textbf{Ciclos de Reloj e Instrucciones (CPI)} },
+        fonttitle=\bfseries,
+        size=small
+        ]
+        \begin{itemize}
+            \item \textbf{Ciclos de CPU totales:}
+            $$\text{Ciclos de CPU} = \text{Nº de instrucciones} \times \text{CPI medio}$$
+            \item \textbf{Ciclos basados en clases de instrucciones:}
+            $$\text{Ciclos de CPU} = \sum_{i=1}^{n} (\text{CPI}_i \times C_i)$$
+            \textit{Donde $C_i$ es el número de instrucciones de la clase $i$.}
+            \item \textbf{CPI (Ciclos de reloj Por Instrucción):}
+            $$\text{CPI} = \frac{\text{Ciclos de reloj de la CPU}}{\text{Número de instrucciones}}$$
+        \end{itemize}
+        \end{tcolorbox}
+
+        \begin{tcolorbox}[
+        colback=white, 
+        colframe=blue!40!black, 
+        title= {\centering \textbf{Ecuación Clásica de las Prestaciones} },
+        fonttitle=\bfseries,
+        size=small
+        ]
+        \begin{itemize}
+            \item \textbf{Con tiempo de ciclo:}
+            $$\text{Tiempo} = \text{Nº Instrucciones} \times \text{CPI} \times \text{Tiempo de ciclo}$$
+            \item \textbf{Con frecuencia de reloj:}
+            $$\text{Tiempo} = \frac{\text{Nº Instrucciones} \times \text{CPI}}{\text{Frecuencia de reloj}}$$
+            \item \textbf{Desglose por componentes de las prestaciones:}
+            $$\frac{\text{Segundos}}{\text{Programa}} = \frac{\text{Instrucciones}}{\text{Programa}} \times \frac{\text{Ciclos de reloj}}{\text{Instrucción}} \times \frac{\text{Segundos}}{\text{Ciclo de reloj}}$$
+        \end{itemize}
+        \end{tcolorbox}
+
+        \vfill\null\columnbreak
+
+        \begin{tcolorbox}[
+        colback=white, 
+        colframe=blue!40!black, 
+        title= {\centering \textbf{Consumo de Potencia} },
+        fonttitle=\bfseries,
+        size=small
+        ]
+        \begin{itemize}
+            \item \textbf{Potencia dinámica (tecnología CMOS):}
+            $$\text{Potencia} = \text{Carga capacitiva} \times \text{Voltaje}^2 \times \text{Frecuencia de conmutación}$$
+            \item \textbf{Potencia estática (por fugas de corriente):}
+            $$P_{est} = V \times I_{\text{fuga}}$$
+            \item \textbf{Métrica global SPECpower (ssj\_ops global por vatio):}
+            $$\text{Rendimiento/Potencia} = \frac{\sum_{i=0}^{10} \text{ssj\_ops}_i}{\sum_{i=0}^{10} \text{potencia}_i}$$
+        \end{itemize}
+        \end{tcolorbox}
+
+        \begin{tcolorbox}[
+        colback=white, 
+        colframe=blue!40!black, 
+        title= {\centering \textbf{Ley de Amdahl} },
+        fonttitle=\bfseries,
+        size=small
+        ]
+        \begin{itemize}
+            \item \textbf{Tiempo de ejecución después de las mejoras:}
+            $$T_{\text{nuevo}} = \frac{T_{\text{afectado por mejora}}}{\text{Cantidad de mejora}} + T_{\text{no afectado}}$$
+            \textit{Nota: Sirve para calcular el impacto de mejorar sólo una fracción del sistema.}
+        \end{itemize}
+        \end{tcolorbox}
+
+        \begin{tcolorbox}[
+        colback=white, 
+        colframe=blue!40!black, 
+        title= {\centering \textbf{Coste de Fabricación de Circuitos Integrados} },
+        fonttitle=\bfseries,
+        size=small
+        ]
+        \begin{itemize}
+            \item \textbf{Coste por dado (chip):}
+            $$\text{Coste} = \frac{\text{Coste por oblea}}{\text{Dados por oblea} \times \text{Factor de producción}}$$
+            \item \textbf{Dados por oblea (aproximación):}
+            $$\text{Dados por oblea} \approx \frac{\text{Área de la oblea}}{\text{Área del dado}}$$
+            \item \textbf{Factor de producción (Yield):}
+            $$\text{Factor} = \frac{1}{\left(1 + \left(\text{Defectos por área} \times \frac{\text{Área del dado}}{2}\right)\right)^2}$$
+        \end{itemize}
+        \end{tcolorbox}
+        
+    \end{multicols*}
+
+\end{document}
