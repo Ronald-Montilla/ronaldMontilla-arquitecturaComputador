@@ -1,0 +1,529 @@
+\documentclass[12pt, a4paper]{article}
+
+% Paquetes básicos
+% Para usar caracteres especiales como la eñe y la tilde.
+\usepackage[utf8]{inputenc}
+% Para establecer el idioma del documento:
+\usepackage[spanish]{babel}
+% Para establecer los margenes de la hoja:
+\usepackage[margin=2.5cm]{geometry}
+% Para mostrar codigos de lenguajes de programacion esteticos:
+\usepackage{listings}
+\usepackage{xcolor}
+% Para controlar la sangría y el espaciado entre parrafos.
+\usepackage{parskip}
+% Para hacer el indice dinámico.
+\usepackage{hyperref}
+
+% 1. Definimos el lenguaje MIPS32 formalmente
+\lstdefinelanguage{MIPS32}{
+    % Lista de instrucciones comunes (Keywords) que quieres colorear en azul
+    morekeywords={
+        lw, sw, lb, sb, la, li, lui,
+        add, addi, addiu, addu, sub, subu,
+        and, andi, or, ori, xor, xori, nor,
+        sll, srl, sra,
+        beq, bne, bltz, bgtz, blez, bgez,
+        j, jal, jr, jalr,
+        syscall, move, nop, slt
+    },
+    sensitive=true,                   % MIPS es sensible a mayúsculas/minúsculas
+    morecomment=[l]{\#},             % Los comentarios empiezan con # hasta el fin de la línea
+    morestring=[b]"                  % Las cadenas de texto van entre comillas dobles
+}
+
+% 2. Aplicamos la configuración estética global
+\lstset{
+    language=MIPS32,                  % Establecemos MIPS32 como el lenguaje por defecto
+    backgroundcolor=\color{gray!5},   % Fondo gris muy claro
+    basicstyle=\ttfamily\small,       % Fuente monoespaciada
+    breaklines=true,                  % Ajuste de línea automático
+    captionpos=b,
+    commentstyle=\color{green!60!black}, % Comentarios en verde oscuro
+    keywordstyle=\color{blue}\bfseries,  % Instrucciones en azul y negrita
+    stringstyle=\color{purple},       % Cadenas de texto en morado
+    numbers=left,                     % Números de línea a la izquierda
+    numberstyle=\tiny\color{gray},
+    frame=single,                     % Caja contenedora
+    showstringspaces=false
+}
+
+\title{tallerDos}
+\author{Ronald Montilla}
+\date{August 2026}
+
+\begin{document}
+    \begin{titlepage}
+        \centering % Centra todo el texto de la portada
+    
+        % Encabezado
+        {\bfseries\LARGE Universidad de Carabobo} \\[0.4cm]
+        {\LARGE Facultad Experimental de Ciencias y Tecnología} \\[0.2cm]
+        {\LARGE Departamento de Computación} \\[1.5cm]
+        
+    
+        % \includegraphics[width=0.3\textwidth]{logo_universidad.png} \\[1cm]
+        
+        \vfill
+    
+        % Titulo
+        {\bfseries\Huge Práctica de Laboratorio Número 2} \\
+        {\bfseries(Algoritmos de ordenamientos Quick Sort y Merge Sort)}\\[0.5cm]
+        
+        \vfill
+        
+        % Datos
+        \vfill
+        \begin{tabular}[t]{l}
+            \large\textbf{Profesor:} \\
+            \large José Canache \\
+            \large\textbf{Arquitectura del Computador}
+        \end{tabular}
+        \hfill
+        \begin{tabular}[t]{r}
+            \large\textbf{Autor:} \\
+            \large Ronald Montilla \\
+            \large C.I. 32.011.453
+        \end{tabular}
+    
+        {\today}
+        
+    \end{titlepage}
+    \newpage
+    \tableofcontents
+    \newpage
+    \section{Registros y sus principales diferencias.}
+    MIPS32 posee 32 registros de 32 bits cada uno. Alguno de los principales registros son:
+        \subsection{Registros temporales}
+            \textbf{\$t0 - \$t9 (Registro 8-15, 24-25):} Conocidos como \textit{Registros Temporales}, se utilizan sin necesidad de guardar sus datos, es decir, se deben emplear teniendo en cuenta que al llamar otras funciones sus datos se pueden perder a menos que sean importantes en cuyo caso deben ser respaldados.
+            En las implementaciones de quick sort y merge sort en este laboratorio fueron indispensables ya que se usaron principalmente para realizar operaciones matemáticas de calculo de indices, almacenamiento temporal del resultado de comparar datos y como variables contadoras. Un ejemplo de esto se puede visualizar a continuación:
+            \begin{lstlisting}
+sll $t0, $a2, 2
+add $t0, $t0, $a0
+lw $t1, 0($t0) # $t1 = pivot
+add $t2, $a1, $zero # $t2 sera mi variable i para recorrer el arreglo.
+add $t3, $a1, $zero # $t3 sera mi variable j y apuntara al elemento despues del ultimo menor.
+            \end{lstlisting}
+            En esta porción del código de Quick Sort se emplearon los registros temporales para calcular el índice del arreglo, alojar un elemento del arreglo y crear variables contadoras que posteriormente fueron empleadas en un bucle for.
+        \subsection{Registros Guardados}
+            \textbf{\$s0 - \$s7 (registros 16 - 23):} Mejor conocidos como \textit{Registros Guardados}, son registros que deben ser preservados en un función, es decir, sus datos son importante para la función, por lo cual deben ser guardados al momento de realizar llamadas a otras funciones y deben retornar su valor anterior al momento de finalizar dicha función.
+    
+            En la implementación de los algoritmos de ordenamiento fueron cruciales para alojar datos importantes para el funcionamiento de los algoritmos. Por ejemplo, en Merge Sort fueron empleados para alojar condiciones de parada para ciclos, datos empleados constantemente en toda la función y datos que debían ser resguardados porque funciones externas lo podían modificar(en caso de ser empleados en registros temporales):
+            \begin{lstlisting}
+slt $t2, $s0, $s1
+beq $t2, $zero, finMergeSort
+# Entra en un for:
+add $s2, $a1, $zero # $s2 empezara en el primer elemento i = 0
+addi $s3, $a2, -1
+sub $s3, $s3, $s0 # $s3 sera la condicion de parada del for.
+            \end{lstlisting}
+            \newpage
+        \subsection{Registros de Argumentos}
+            \textbf{\$a0 - \$a3 (Registros 4-7):} los conocidos como \textit{Registros de Argumentos} se emplean para alojar los argumentos que serán usados por una función. Al momento de emplear una sub-rutina estos deben ser guardados y al finalizar restaurados, como se hizo en las sub-rutinas del algoritmo de Quick Sort y Merge Sort del presente laboratorio.
+            
+            En este ejemplo se muestran los 4 registros(\$a0 - \$a3) de argumentos que fueron recibidos por la sub-rutina merge para su posterior uso, Pero antes fueron guardados en la pila ya que estos datos deben ser preservados:
+            \begin{lstlisting}
+merge:
+    # $a0: direccion del arreglo, $a1: indice al primer elemento.
+    # $a2: indice al medio del arreglo, $a3: indice del ultimo elemento.
+    addi $sp, $sp, -20
+    sw $ra, 16($sp)
+    sw $a0, 12($sp)
+    sw $a1, 8($sp)
+    sw $a2, 4($sp)
+    sw $a3, 0($sp)
+            \end{lstlisting}
+        \subsection{Registros de Retorno}
+            \textbf{\$v0 - \$v1 (Registros 2-3):} Estos registros son los encargados de alojar los resultados devueltos por una sub-rutina. En el caso de la implementación de Quick Sort fueron empleados para alojar el resultado devuelto por la sub-rutina merge, la cual debía retornar el índice de partición.
+    \section{Impacto de registros frente memoria en el rendimientos de los algoritmos de ordenamiento implementados.}
+        La elección del uso de registros o memoria en los algoritmos de ordenamientos tienen claros impactos en el rendimiento de un programa en MIPS32. En donde la jerarquía de memoria y el pipeline radican directamente en estos impactos. Algunos de los principales impactos de esta elección son los siguientes:
+        \subsection{Ciclos de reloj}
+            \textbf{Registros \$t0 - \$t9 y \$s0 - \$s7:} estos registros se encuentran alojados en el banco de registros de la \textit{CPU} por lo que el acceso a ellos toma 1 ciclo de reloj, la lectura y escritura sobre estos registros se hace directamente en el banco de registros, sin latencia de bus.
+            
+            \textbf{Memoria principal lw y sw:} el acceso a la memoria principal es complejo debido a la jerarquía de memoria, en donde se debe acceder a la memoria L1, si el dato se encuentra suele tomar alrededor de 2 y 4 ciclos de reloj, pero si no se encuentra se debe acceder a la jerarquía inferior y la penalización puede ser de decenas o cientos de ciclos de reloj.
+
+            Es aquí donde se puede observar claramente la diferencia de rendimiento a la hora de emplear registros o recurrir a la memoria principal. Por lo cual siempre es recomendable recurrir cuanto menos a la memoria en los algoritmos de ordenamiento, ya que suelen realizar repetidamente las mismas operaciones.
+        \subsection{Frecuencia de operaciones}
+            Los algoritmos de ordenamiento suelen realizar una y otra vez las mismas operaciones como comparar o intercambiar datos. Si se tienen dichos datos en la memoria principal el procesador debe obtener esos datos, compararlos, fusionarlos o cambiarlos de posición y volver a almacenarlos en la memoria, por lo cual, ante grandes cantidades de datos esto suele requerir más ciclos de reloj de lo esperado.
+        \subsection{Riesgos de datos de carga}
+            El uso continuo de la memoria principal(\lstinline|$lw, $sw|) en este tipo de algoritmos suele mantener al procesador constantemente detenido(\textit{stall}), principalmente por los riesgos de datos de carga, es decir, fallos que se producen cuando una instrucción requiere de un dato que aun no esta cargado porque que, en el \textit{pipeline} aun no se encuentra disponible. Como por ejemplo en la siguiente instrucción:
+            \begin{lstlisting}
+lw $t0, 0($s1)
+slt $t1, $t0, $t2
+            \end{lstlisting}
+            Operar directamente con registros anula estos fallos que detienen al procesador mientras espera el dato solicitado, evitando el desperdicio de ciclos de reloj.
+
+    Por todo lo antes mencionado, los registros suelen presentar mejor rendimiento para los algoritmos de ordenamiento en MIPS32.
+    \section{Impacto de las estructuras de control e instrucciones de salto en la eficiencia de algoritmos MIPS32}
+        El impacto de las estructuras de control en MIPS32 está determinado directamente por cómo interactúan con su arquitectura segmentada (pipeline de 5 etapas: IF, ID, EX, MEM, WB) y la jerarquía de memoria. Los saltos y bucles mal optimizados degradan el rendimiento al generar penalizaciones por ciclo.
+
+        En la presente implementación de quickSort y mergeSort las estructuras de control fueron muy empleadas, por la naturaleza de los algoritmos de ordenamiento de recorrer los elementos. Estás estructuras favorecen la localidad temporal al emplear repetidamente las mismas instrucciones, sin embargo, también puede tener un impacto negativo en la eficiencia de los algoritmos con ciertas instrucciones como las de acceso a memoria(como \$lw. \$sw que generan latencia en el bus) y continuos riesgos de datos. También, anidar muchos bloqueos suele alterar la eficiencia de un algoritmo al aumentar su complejidad temporal.
+        
+        Uno de los principales impactos se producen por el pipeline debido a que instrucciones de salto condicional(como \lstinline|beq y bne|) deben realizar una comparación antes de realizar el salto, esta comparación se produce en la etapa \textit{EX} mientras que el procesador ejecuta las instrucciones posteriores. Si la condición se cumple se produce el salto, pero el procesador se encuentra procesando las instrucciones que estaban luego de la instrucción de salto condicional por lo que ahora deberá deshacer todo lo hecho, malgastando de esta manera ciclos de reloj.
+
+        Por otro lado, instrucciones de salto incondicional(\lstinline|j, jr, jal|) pueden alterar la eficiencia de los algoritmos por aspectos como: saltos a direcciones muy lejanas que pueden provocar penalización por fallos debido a que las instrucciones no se encuentran directamente en la cache, por otro lado, si el salto es corto es muy probable que las instrucciones siguientes a ese salto ya se encuentren en la cache principal, favoreciendo la localidad espacial y la tasa de aciertos. Es por ello, que establecer bloques de instrucciones no muy grandes es esencial en este tipo de casos para reducir la penalización por fallos y favorecer la localidad espacial.
+    \section{Complejidades computacionales de QuickSort, MergeSort y sus implicaciones en MIPS32}
+        La diferencia fundamental entre Quicksort y Mergesort radica en la garantía de tiempo de ejecución frente al consumo de memoria auxiliar, lo que condiciona de forma directa la gestión de la pila y los registros en un entorno de bajo nivel como MIPS32.
+        \subsection{Comparación de Complejidad Computacional}
+            \textbf{Tiempo en el mejor caso y caso promedio:} Ambos logran una complejidad de $O(n \log n)$. Sin embargo, Quicksort suele ser más rápido en la práctica debido a menores factores constantes en sus operaciones elementales.
+            
+            \textbf{Tiempo en el peor caso:} Mergesort garantiza $O(n \log n)$ de forma determinista sin importar el orden inicial. Quicksort degrada a $O(n^2)$ si la selección del pivote es desfavorecida (por ejemplo, al procesar arreglos ya ordenados con un pivote en el extremo).
+            
+            \textbf{Espacio auxiliar (Memoria):} Quicksort opera de forma in-place (sobre el mismo arreglo), requiriendo únicamente $O(\log n)$ de espacio en la pila para las llamadas recursivas en el caso promedio. Mergesort requiere $O(n)$ de espacio adicional en memoria para crear arreglos temporales durante la fase de mezcla.
+            
+            \textbf{Estabilidad:} Mergesort es estable (mantiene el orden relativo de elementos con llaves iguales), mientras que la implementación estándar de Quicksort no lo es.
+        \subsection{Implicaciones en la Implementación para MIPS32}
+            \textbf{Quicksort:} Resulta muy eficiente en la pila de MIPS32. Cada llamada recursiva solo necesita salvar en la pila el registro de retorno \lstinline|$ra| y los registros guardados \lstinline|$s0-$s7| que utilice la función. Con una profundidad de recursión promedio de $O(\log n)$, la pila se mantiene ligera.
+
+            Realiza las particiones e intercambios directamente sobre el arreglo original manipulando datos cargados en registros temporales \lstinline|$t0-$t9|. Esto genera una excelente localidad espacial que minimiza fallos de caché y reduce al mínimo el uso de punteros.
+            
+            \textbf{Mergesort:} Exige reservar un buffer auxiliar de $O(n)$ palabras en la memoria de datos (RAM). En ensamblador MIPS32 bare-metal, esto implica gestionar asignación dinámica mediante llamadas al sistema (syscall con servicio sbrk) o reservar un bloque estático de tamaño máximo previo, complicando la arquitectura del código.
+
+            La etapa de mezcla (merge) requiere copiar elementos continuamente del arreglo original al auxiliar y viceversa. Esto incrementa drásticamente la densidad de instrucciones de carga (lw) y almacenamiento (sw), sobrecargando la memoria y potencialmente causando fallos(stalls) en el pipeline de MIPS.
+    \section{Fases del ciclo de ejecución de instrucciones en la arquitectura MIPS32}
+        Las fases del camino de datos de MIPS32 son cinco(IF, ID, EX, MEM, WB):
+        
+        \textbf{1. Búsqueda de Instrucción(IF):} Se libera la dirección por parte del contador del programa(PC) que se ingresa en la memoria de instrucciones para su búsqueda. El contador de programa se incrementa(PC + 4).
+
+        \textbf{2. Decodificación de Instrucción(ID):} la memoria de instrucciones libera la instrucción que sera procesada para obtener los registros necesarios, los datos de los registros y las señales de control.
+
+        \textbf{3. Ejecución(EX):} Fase en la que ALU recibe sus operandos, la señal de control de la operación(ALUOP) y realiza la operación indicada con sus operandos. Se calculan direcciones de salto condicional o el desplazamiento para accesos a memoria base más desplazamiento.
+
+        \textbf{4. Acceso a memoria(MEM):} La memoria recibe indicaciones por parte de señales de control para escribir o leer en ella. Las instrucciones aritméticas o lógicas simplemente reenvían el resultado sin modificar la memoria.
+
+        \textbf{5. Escritura en los registros(WB):} Fase en la que se escribe en el registro de escritura el dato obtenido de la ALU o la memoria de datos.
+    \section{Análisis de la Implementación en MARS}
+        
+        \subsection{Instrucciones predominantes (R, I, J)}
+            En el desarrollo de esta práctica predominaron fuertemente las instrucciones de tipo \textbf{I (Inmediato)} y \textbf{R (Registro)}. Las de tipo I (como \lstinline|lw|, \lstinline|sw|, \lstinline|addi|, \lstinline|beq|, \lstinline|bne|) fueron fundamentales, ya que los algoritmos de ordenamiento requieren interactuar constantemente con la memoria para leer y escribir los elementos de los arreglos, además de ser la base para manejar las condiciones de parada en los bucles. Por otro lado, las instrucciones de tipo R (como \lstinline|add|, \lstinline|slt|, \lstinline|sll|) se utilizaron continuamente para el cálculo de las direcciones de memoria (como al multiplicar índices por 4 usando corrimientos lógicos), las comparaciones entre elementos y la aritmética básica de nuestros índices. Las instrucciones de tipo J (\lstinline|j|, \lstinline|jal|) también fueron vitales para la recursividad y los saltos entre subrutinas, pero en términos de volumen, las I y R hicieron el trabajo pesado dentro de las iteraciones.
+
+        \subsection{Ventajas del modelo RISC de MIPS en algoritmos de ordenamiento}
+            El modelo RISC de MIPS nos ofrece una gran ventaja gracias a su arquitectura de carga y almacenamiento (\textit{Load/Store}) y su amplio banco de registros. Al implementar algoritmos básicos como Quick Sort y Merge Sort, que realizan múltiples operaciones repetitivas e intercambios, tener 32 registros nos permitió mantener nuestros contadores, índices y valores temporales directamente en la CPU. Esto resulta sumamente eficiente, ya que evitamos accesos innecesarios y costosos a la memoria principal. Además, al tener un repertorio de instrucciones de tamaño fijo y sencillo, el mapeo de la lógica abstracta de lenguajes de alto nivel a código ensamblador resultó ser mucho más directo y predecible.
+
+        \subsection{Uso del modo de ejecución paso a paso (Step / Step Into) en MARS}
+            El modo de ejecución paso a paso fue nuestra principal herramienta de depuración (\textit{debugging}). Utilizando las funciones \textit{Step} y \textit{Step Into}, pudimos verificar el comportamiento del código instrucción por instrucción. Esto nos sirvió especialmente para confirmar que el cálculo de las direcciones de los arreglos (el desplazamiento de bytes) fuera el correcto antes de ejecutar un \lstinline|lw| o \lstinline|sw|. También fue crucial al usar \textit{Step Into} en las llamadas recursivas de Quick Sort, lo que nos permitió observar de cerca cómo se comportaba el puntero de la pila (\lstinline|$sp|) y asegurar que los registros importantes se estaban guardando y restaurando en el orden adecuado sin corromperse.
+
+        \subsection{Herramientas de MARS útiles para observar registros y detectar errores lógicos}
+            Definitivamente, el panel lateral derecho de \textbf{Registros (Registers)} combinado con la ventana del \textbf{Segmento de Datos (Data Segment)} fueron las herramientas más útiles. El panel de registros nos permitía ver en tiempo real cómo se actualizaban nuestras variables iteradoras (\lstinline|$t0-\$t9|) y confirmar que las subrutinas devolvieran los valores esperados. Por su parte, el Segmento de Datos nos ayudó enormemente a detectar errores lógicos; por ejemplo, si calculábamos mal un índice, podíamos visualizar físicamente en la cuadrícula de la memoria que estábamos sobrescribiendo datos en posiciones incorrectas del arreglo, permitiéndonos ajustar el código rápidamente.
+
+        \subsection{Camino de datos para una instrucción tipo R en MARS}
+            Para visualizar el camino de datos en MARS, se puede utilizar la herramienta \textbf{MIPS X-Ray} (ubicada en el menú \textit{Tools}). Al animar una instrucción tipo R, como un \lstinline|add|, podemos ver visualmente cómo la instrucción pasa por las 5 etapas: primero, el contador de programa (PC) señala a la memoria para extraer la instrucción (IF); luego, en la decodificación (ID), las líneas de datos se iluminan mostrando cómo se extraen los dos operandos desde el banco de registros. Seguidamente, esos datos viajan a la ALU para realizar la suma (EX). Como es una instrucción aritmética, se ignora el bloque de memoria de datos (MEM) y el resultado viaja directamente a través del multiplexor de regreso al banco de registros para ser guardado (WB).
+
+        \subsection{Camino de datos para una instrucción tipo I en MARS}
+            Utilizando la misma herramienta \textbf{MIPS X-Ray}, el camino de datos para una instrucción tipo I (como \lstinline|lw|) cambia su recorrido. Tras la búsqueda (IF) y decodificación (ID), observamos que solo se lee un registro fuente. El segundo operando es el valor inmediato de 16 bits que pasa por la unidad de extensión de signo para convertirse en 32 bits. Ambos entran a la ALU (EX) para sumarse y calcular la dirección de memoria efectiva. A diferencia de las tipo R, en este punto el camino de datos entra en el bloque de la \textbf{Memoria de Datos} (MEM), indicando una operación de lectura. Finalmente, el valor extraído de esa dirección viaja de vuelta al banco de registros para ser escrito en el registro destino (WB).
+    \section{¿Cuál de los dos algoritmos es mejor?}
+            Tanto Quick Sort como Merge Sort emplean la estrategia "divide y vencerás", sin embargo, en la practica se empleo uno en su forma recursiva(Quick Sort) y el otro en su forma iterativa(Merge Sort). A la hora de elegir entre uno u otro se deben tomar en cuenta diferentes aspectos. 
+
+            En primer lugar la complejidad temporal. Ambos tienen una complejidad promedio de $O(n\log n)$, sin embargo en el peor de los casos Quick Sort puede degradarse a la complejidad $O(n^2)$ mientras Merge Sort se mantiene en la misma complejidad. Por otro lado, Quick Sort suele ser la preferida para procesar grandes cantidades de datos a altas velocidades mientras que Merge Sort suele requerir mayor consumo de memoria debido a la creación de estructuras auxiliares de elementos. Además, algo a tomar en cuenta es que Merge Sort no suele modificar la posición relativa de los elementos, mientras que el otro algoritmo si lo hace.
+
+            Por todo lo antes mencionado llegamos a la siguiente conclusión. Si buscas velocidad y menor consumo de memoria elige Quick Sort, pero si buscas estabilidad posicional y de tiempo debes irte por Merge Sort.
+    \section{Análisis y discusión de los resultados}
+            En el momento de elaborar el código de ambos algoritmos se logro observar que la complejidad al elaborar el algoritmo de ordenamiento Merge Sort de forma iterativa es mucho superior a elaborarlo de forma recursiva, su complejidad radica principalmente en el calculo de los indices y prevención de desbordamientos. Esto se pudo notar durante la ejecución del algoritmo de ordenamiento Merge Sort donde los problemas con índices fue constante y se tuvo que elegir la mejor solución.
+
+            Gracias a las herramientas del entorno MARS MIPS32 se pudo avanzar con mayor rapidez al detectar errores con las herramientas de MARS y observar el flujo de los datos y actualización de los registros. También se pudo contabilizar el número de instrucciones de cada tipo durante la ejecución de cada algoritmo(con la herramienta "instruction counter"). En el algoritmo de ordenamiento Merge Sort se contabilizaron un total de 969 instrucciones, 415(42\%) de tipo \textit{R}, 486(50\%) de tipo \textit{I} y 68(7\%) de tipo \textit{J}. En el algoritmo de ordenamiento Quick Sort se contabilizaron un total de 1278 instrucciones, 506(39\%) de tipo \textit{R}, 681(53\%) de tipo \textit{I} y 91(7\%) de tipo \textit{J}.
+
+            Para las pruebas de ambos códigos se emplearon arreglos de diferentes tamaños y desordenados de diferentes formas, cuando ocurría un error se buscaba inmediatamente su solución. De esta se llego a la conclusión correcta.
+     \section{Código de los algoritmos.}
+        El presente laboratorio se basa en familiarizar por parte de estudiante con la sintaxis y el entorno de trabajo MARS a través de la resolución de problemas clásicos. En este caso, los problemas se basan en algoritmos de ordenamiento: Quick Sort y Merge Sort.
+        Los siguientes códigos muestran la implementación de estos algoritmos en MIPS32, para los cuales se implemento uno recursivo(quick sort) y otro iterativo(merge sort).
+            \subsection{Quick Sort:}
+                Es uno de los algoritmos de ordenamiento más famosos. Fue creado en la década de los 60 y es sumamente famoso por su rapidez a la hora de ordenar grandes cantidades de datos. Se basa en el principio de divide y vencerás ya que divide repetidamente los elementos tomando un \textit{pivot} como referencia para colocar los elementos menores a la izquierda y los mayores a la derecha, de esta manera el \textit{pivot} queda en su posición correcta.
+                
+                Este algoritmo tiene una complejidad temporal promedio de $0(n\log(n))$ al tomar el \textit{pivot} de manera aleatoria pero su complejidad aumenta al tomar el \textit{pivot} de manera incorrecta, como  cuando ya están ordenados los elementos, a $O(n^2)$.
+                
+                Implementación en MIPS32:
+                \begin{lstlisting}
+swap:
+    # $a0: direccion del primer elemento, $a1: direccion del segundo elemento
+    lw $t0, 0($a0)
+    lw $t1, 0($a1)
+    sw $t1, 0($a0)
+    sw $t0, 0($a1)
+    jr $ra
+                \end{lstlisting}
+                \begin{lstlisting}
+partition:
+    # $a0 corresponde a la direccion del arreglo "A[]". $a1 corresponde al indice del primer elemento
+    # $a2 corresponde al indice del ultimo elemento.
+    addi $sp, $sp, -16
+    sw $ra, 12($sp)
+    sw $a2, 8($sp)
+    sw $a1, 4($sp)
+    sw $a0, 0($sp)
+    sll $t0, $a2, 2
+    add $t0, $t0, $a0
+    lw $t1, 0($t0) # $t1 = pivot
+    add $t2, $a1, $zero # $t2 sera mi variable i para recorrer el arreglo.
+    add $t3, $a1, $zero # $t3 sera mi variable j y apuntara al elemento despues del ultimo menor.
+    forPartition:
+        slt $t4, $t2, $a2
+        beq $t4, $zero, finPartition
+        sll $t4, $t2, 2
+        add $t4, $t4, $a0
+        lw $t5, 0($t4) # $t5 = A[i]
+        slt $t6, $t1, $t5
+        beq $t6, $zero, intercambio
+        addi $t2, $t2, 1
+        j forPartition
+        intercambio:
+            # Se intercambian los elementos A[i] y A[j]
+            sll $t6, $t3, 2
+            add $t6, $t6, $a0
+            add $a0, $t4, $zero
+            add $a1, $t6, $zero
+            # Como swap modifica $t0 y $t1:
+            add $t6, $t0, $zero
+            add $t7, $t1, $zero
+            jal swap
+            # Recuperacion de datos importantes:
+            add $t0, $t6, $zero
+            add $t1, $t7, $zero
+            lw $a0, 0($sp)
+            lw $a1, 4($sp)
+            #Incremento de variables controladoras:
+            addi $t2, $t2, 1
+            addi $t3, $t3, 1
+            j forPartition
+    finPartition:
+        add $v0, $t3, $zero # $v0 retornara el indice de particion
+        sll $t3, $t3, 2
+        add $t3, $t3, $a0
+        add $a0, $t0,  $zero
+        add $a1, $t3, $zero
+        jal swap
+        lw $a0, 0($sp)
+        lw $a1, 4($sp)
+        lw $a2, 8($sp)
+        lw $ra, 12($sp)
+        addi $sp, $sp, 16
+        jr $ra
+                \end{lstlisting}
+                \newpage
+                \begin{lstlisting}
+quickSort:
+    # $a0 corresponde con la direccion del arreglo A[], $a1 corresponde al indice del primer elemento
+    # $a2 corresponde al indice del ultimo elemento
+    addi $sp, $sp, -20
+    sw $ra, 16($sp)
+    sw $a0, 12($sp)
+    sw $a1, 8($sp)
+    sw $a2, 4($sp)
+    slt $t0, $a1, $a2
+    beq $t0, $zero, finQuickSort
+    jal partition
+    sw $v0, 0($sp)
+    addi $a2, $v0, -1
+    jal quickSort
+    lw $v0, 0($sp)
+    lw $a2, 4($sp)
+    addi $a1, $v0, 1
+    jal quickSort
+    finQuickSort:
+        lw $a2, 4($sp)
+        lw $a1, 8($sp)
+        lw $a0, 12($sp)
+        lw $ra, 16($sp)
+        addi $sp, $sp, 20
+        jr $ra
+                \end{lstlisting}
+            \subsection{Merge Sort}
+                Otro de los más famosos y eficientes algoritmos de ordenamiento, empleando la estrategia de \textit{divide y vencerás} al dividir una lista de elementos hasta que queda uno solo(que ya esta ordenado) y luego los fusiona dejando cada elemento en su lugar correspondiente. Una de sus características es que al momento de ordenar elementos iguales no los cambia de posición, está característica es muy importante en muchas implementaciones. Mantiene una complejidad temporal en todos los casos de $O(n\log n)$ y una complejidad espacial de $O(n)$ debido a la creación de arreglos auxiliares.
+                
+                En esta implementación se emplearon dos funciones principales \textit{mergeSort(que divide los elementos de la lista a fusionar)}, \textit{min(que retorna el menor entre dos enteros)} y\textit{merge(que fusiona esos elementos seleccionados)}. El código es el siguiente:
+                \newpage
+                \begin{lstlisting}
+merge:
+    # $a0: direccion del arreglo, $a1: indice al primer elemento.
+    # $a2: indice al medio del arreglo, $a3: indice del ultimo elemento.
+    addi $sp, $sp, -20
+    sw $ra, 16($sp)
+    sw $a0, 12($sp)
+    sw $a1, 8($sp)
+    sw $a2, 4($sp)
+    sw $a3, 0($sp)
+    add $t0, $a1, $zero # primer indice de la primera mitad del arreglo "i".
+    addi $t1, $a2, 1 # primer indice de la segunda mitad del arreglo "j".
+    li $t2, 0 # indice actual del arreglo auxiliar. "k".
+    addi $t3, $a3, 1
+    subu $t3, $t3, $a1 # $t3: numero de elementos del arreglo
+    add $t4, $a0, $zero
+    # Arreglo auxiliar "arr2" con tamanio igual al numero de elementos del arreglo pasado por argumentos.
+    # Su direccion se guarda en $t9
+    la $t9, arr2
+    add $a0, $t4, $zero
+    whileMerge:
+        slt $t4, $a2, $t0
+        bne $t4, $zero, whileDosMerge
+        slt $t4, $a3, $t1
+        bne $t4, $zero, whileUnoMerge
+        # Primera comparacion y guardado:
+        sll $t4, $t0, 2
+        add $t4, $t4, $a0
+        lw $t4, 0($t4) # $t4 = A[i]
+        sll $t5, $t1, 2
+        add $t5, $t5, $a0
+        lw $t5, 0($t5) # $t5 = A[j]
+        sll $t7, $t2, 2
+        add $t7, $t7, $t9
+        addi $t2, $t2, 1
+        slt $t6, $t4, $t5
+        beq $t6, $zero, guardarSegundo
+        sw $t4, 0($t7)
+        addi $t0, $t0, 1
+        j whileMerge
+        guardarSegundo:
+            sw $t5, 0($t7)
+            addi $t1, $t1, 1
+            j whileMerge
+    whileUnoMerge:
+        slt $t4, $a2, $t0
+        bne $t4, $zero, reemplazoArreglo
+        sll $t4, $t0, 2
+        add $t4, $t4, $a0
+        lw $t4, 0($t4) # $t4 = A[i]
+        sll $t7, $t2, 2
+        add $t7, $t7, $t9
+        addi $t2, $t2, 1
+        sw $t4, 0($t7)
+        addi $t0, $t0, 1
+        j whileUnoMerge
+    whileDosMerge:
+        slt $t4, $a3, $t1
+        bne $t4, $zero, reemplazoArreglo
+        sll $t5, $t1, 2
+        add $t5, $t5, $a0
+        lw $t5, 0($t5) # $t5 = A[j]
+        sll $t7, $t2, 2
+        add $t7, $t7, $t9
+        addi $t2, $t2, 1
+        sw $t5, 0($t7)
+        addi $t1, $t1, 1
+        j whileDosMerge
+    reemplazoArreglo:
+        add $t0, $a1, $zero # indice del primer elemento del arreglo.
+        li $t1, 0 # indice del primer elemento del arreglo auxiliar.
+        forMerge:
+        slt $t2, $a3, $t0
+        bne $t2, $zero, finMerge
+        sll $t3, $t1, 2
+        add $t3, $t3, $t9
+        lw $t3, 0($t3) # $t3 = Au[k]
+        addi $t1, $t1, 1
+        sll $t4, $t0, 2
+        add $t4, $t4, $a0
+        sw $t3, 0($t4)
+        addi $t0, $t0, 1
+        j forMerge
+    finMerge:
+        lw $a3, 0($sp)
+        lw $a2, 4($sp)
+        lw $a1, 8($sp)
+        lw $a0, 12($sp)
+        lw $ra, 16($sp)
+        addi $sp, $sp, 20
+        jr $ra
+                \end{lstlisting}
+                \newpage
+                \begin{lstlisting}
+min:
+    # Recibe dos numeros enteros y retorna el menor.
+    # $a0: numero a, $a1: numero b, $v0 salida del numero menor
+    slt $t1, $a0, $a1
+    beq $t1, $zero, retornarB
+    add $v0, $a0, $zero
+    j finMin
+    retornarB:
+        add $v0, $a1, $zero
+    finMin:
+        jr $ra 
+                \end{lstlisting}
+                \begin{lstlisting}
+mergeSort:
+    # $a0: direccion del arreglo, $a1: indice al primer elemento.
+    # $a2: valor correspondiente al ultimo indice + 1
+    addi $sp, $sp, -32
+    sw $s3, 28($sp)
+    sw $s2, 24($sp)
+    sw $s1, 20($sp)
+    sw $s0, 16($sp)
+    sw $ra, 12($sp)
+    sw $a2, 8($sp)
+    sw $a1, 4($sp)
+    sw $a0, 0($sp)
+    li $s0, 1 # Numero de elementos * 2 a fusionar (numElements)
+    move $s1, $a2 # $t1 = total de elementos.
+    whileMergeSort:
+        slt $t2, $s0, $s1
+        beq $t2, $zero, finMergeSort
+        # Entra en un for:
+        add $s2, $a1, $zero # $s2 empezara en el primer elemento i = 0
+        addi $s3, $a2, -1
+        sub $s3, $s3, $s0 # $s3 sera la condicion de parada del for.
+        forMergeSort:
+        slt $t4, $s3, $s2
+        bne $t4, $zero, incrementoWhileMergeSort
+        # Calculo los argumentos para la funcion merge:
+        sll $a0, $s0, 1
+        add $a0, $a0, $s2
+        addi $a0, $a0, -1 
+        addi $a1, $a2, -1
+        jal min
+        add $a2, $s0, $s2
+        addi $a2, $a2, -1 # $a2 sera el indice medio del subarreglo.
+        add $a3, $v0, $zero  # $a3 sera el min ($s1 + ($s0 * 2) - 1, n - 1) y ultimo indice del subarreglo.
+        lw $a0, 0($sp)
+        move $a1, $s2 # $a1 sera el primer indice del subarreglo.
+        jal merge
+        lw $a0, 0($sp)
+        lw $a1, 4($sp)
+        lw $a2, 8($sp)
+        sll $t4, $s0, 1
+        add $s2, $s2, $t4 # Incremento para el for.
+        j forMergeSort
+        incrementoWhileMergeSort:
+            sll $s0, $s0, 1
+            j whileMergeSort
+    finMergeSort:
+        lw $a0, 0($sp)
+        lw $a1, 4($sp)
+        lw $a2, 8($sp)
+        lw $ra, 12($sp)
+        lw $s0, 16($sp)
+        lw $s1, 20($sp)
+        lw $s2, 24($sp)
+        lw $s3, 28($sp)
+        addi $sp, $sp, 32
+        jr $ra
+    mostrarArreglo:
+    addi $sp, $sp, -12
+    sw $ra, 8($sp)
+    sw $a0, 4($sp)
+    sw $a1, 0($sp)
+    # $a0 es la direccion del vector A[], $a1 es el indice del ultimo elemento
+    li $t0, 0
+    addi $t3, $a1, 1
+    loop:	
+        slt $t2, $t0, $t3
+        beq $t2, $zero, finLoop
+        sll $t1, $t0, 2
+        add $t1, $t1, $a0
+        add $t2, $a0, $zero
+        li $v0, 11
+        li $a0, 32
+        syscall
+        lw $a0, 0($t1)
+        li $v0, 1
+        syscall
+        add $a0, $t2, $zero
+        addi $t0, $t0, 1
+        j loop
+        finLoop:
+            lw $a1, 0($sp)
+            lw $a0, 4($sp)
+            lw $ra, 8($sp)
+            addi $sp, $sp, 12
+            jr $ra
+                \end{lstlisting}
+
+                
+\end{document}
