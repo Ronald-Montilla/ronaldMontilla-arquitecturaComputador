@@ -32,7 +32,7 @@ class Cache {
         void inicializarCache(const uint32_t numConjuntos, const uint32_t numVias);
         void agregarDato(const uint32_t dir);
         // Observadores:
-        bool buscarDato(const uint32_t dir);
+        bool buscarDato(const uint32_t pc, const uint32_t dir);
         // Destructor:
         ~Cache();
 };

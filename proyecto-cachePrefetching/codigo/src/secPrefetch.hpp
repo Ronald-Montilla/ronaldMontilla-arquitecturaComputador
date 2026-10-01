@@ -23,7 +23,9 @@ class PrefetchSec : public Prefetch{
         void actualizarBuffer(uint32_t indiceBuffer);
         uint32_t bufferLRU();
         void cargarBuffer(uint32_t indiceBuffer, uint32_t dirFallo);
-        bool logicaPrefetch(const uint32_t dir) override;
+        bool logicaPrefetch(uint32_t pc, uint32_t dir) override;
+        bool notificarTipo() override;
+        void notificarAccion(uint32_t pc, uint32_t *contenedor) override;
         ~PrefetchSec();
 };
 #endif

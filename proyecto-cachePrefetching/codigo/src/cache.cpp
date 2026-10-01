@@ -74,7 +74,7 @@ void Cache::agregarDato(const uint32_t dir) {
     }
 }
 
-bool Cache::buscarDato(const uint32_t dir) {
+bool Cache::buscarDato(const uint32_t pc, const uint32_t dir) {
     // Recibe una direccion de 32 bits y la busca en la cache. Retorna true(hit) o false(miss).
     uint32_t conjuntoSel = (dir >> bitsOffset) & ((1U << bitsConjunto) - 1);
     uint32_t tagSel = (dir >> (bitsOffset + bitsConjunto));
@@ -85,10 +85,17 @@ bool Cache::buscarDato(const uint32_t dir) {
         }
     }
     // El dato debe guardarse en la cache debido al miss.
-    /*if (motorPrefetch != nullptr && motorPrefetch->logicaPrefetch(dir)) {
-        agregarDato(dir);
-        return true;
-    }*/
+    if (motorPrefetch != nullptr && motorPrefetch->logicaPrefetch(pc, dir)) {
+        if (motorPrefetch->notificarTipo()) {
+            agregarDato(dir);
+            return true;
+        } else {
+            uint32_t nuevaDir = dir;
+            motorPrefetch->notificarAccion(pc, &nuevaDir);
+            agregarDato(nuevaDir);
+            return false;   
+        }
+    }
     agregarDato(dir);
     return false;
 }

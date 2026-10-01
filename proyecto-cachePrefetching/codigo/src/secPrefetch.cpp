@@ -73,7 +73,8 @@ void PrefetchSec::cargarBuffer(uint32_t indiceBuffer, uint32_t dirFallo) {
     buferes[indiceBuffer].validez = true;
 }
 
-bool PrefetchSec::logicaPrefetch(const uint32_t dir) {
+bool PrefetchSec::logicaPrefetch(uint32_t pc, uint32_t dir) {
+    // Este metodo no usara "pc", pero por polimorfismo debo colocarla.
     // Ante un fallo, se buscara el dato en el buffer.
     uint32_t conjuntoSel = (dir >> bitsOffset) & ((1U << bitsConjunto) - 1);
     uint32_t tagSel = (dir >> (bitsOffset + bitsConjunto));
@@ -91,6 +92,13 @@ bool PrefetchSec::logicaPrefetch(const uint32_t dir) {
     buferes[indiceModificar].numElem = 0;
     cargarBuffer(indiceModificar, dir);
     return false;
+}
+
+bool PrefetchSec::notificarTipo() {
+    return true;
+}
+
+void PrefetchSec::notificarAccion(uint32_t pc, uint32_t *contenedor) {
 }
 
 PrefetchSec::~PrefetchSec() {
