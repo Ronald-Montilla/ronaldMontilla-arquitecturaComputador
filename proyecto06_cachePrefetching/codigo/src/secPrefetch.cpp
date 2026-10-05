@@ -3,12 +3,29 @@
 #include "secPrefetch.hpp"
 
 // Metodos de la clase hija "PrefetchSec"
-PrefetchSec::PrefetchSec(uint32_t _prof, uint32_t _cant, uint32_t tamB, uint32_t bitsC, uint32_t bitsT, uint32_t bitsOff)
-: Prefetch(tamB), prof(_prof), cant(_cant), bitsConjunto(bitsC), bitsTag(bitsT), bitsOffset(bitsOff) {
+PrefetchSec::PrefetchSec(uint32_t _prof, uint32_t _cant, uint32_t tamBloque, uint32_t numConjuntos, uint32_t numVias)
+: Prefetch(tamBloque), prof(_prof), cant(_cant) {
     buferes.resize(_cant);
     for (int i = 0; i < _cant; i++) {
         buferes[i].lineas.resize(_prof);
     }
+    // Establecemos la cantidad de bits de offset, conjunto y tag:
+    // Numero de bits de offset:
+    uint32_t temp = tamBloque;
+    bitsOffset = 0;
+    while (temp > 1) {
+        temp >>= 1;
+        bitsOffset++;
+    }
+    // Numero de bits de conjunto:
+    temp = numConjuntos;
+    bitsConjunto = 0;
+    while (temp > 1) {
+        temp >>= 1;
+        bitsConjunto++;
+    }
+    bitsTag = 32 - (bitsOffset + bitsConjunto);
+
 }
 
 void PrefetchSec::actualizarContLRU(uint32_t indiceBuffer) {
@@ -99,6 +116,8 @@ bool PrefetchSec::notificarTipo() {
 }
 
 void PrefetchSec::notificarAccion(uint32_t pc, uint32_t *contenedor) {
+    (void)pc;
+    (void)contenedor;
 }
 
 PrefetchSec::~PrefetchSec() {

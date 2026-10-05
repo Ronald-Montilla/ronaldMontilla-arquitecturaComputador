@@ -18,7 +18,7 @@ class PrefetchSec : public Prefetch{
         uint32_t prof, cant, bitsConjunto, bitsTag, bitsOffset;
         std::vector<buffer> buferes;
     public:
-        PrefetchSec(uint32_t _prof, uint32_t _cant, uint32_t tamB, uint32_t bitsC, uint32_t bitsT, uint32_t bitsOff);
+        PrefetchSec(uint32_t _prof, uint32_t _cant, uint32_t tamBloque, uint32_t numConjuntos, uint32_t numVias);
         void actualizarContLRU(uint32_t indiceBuffer);
         void actualizarBuffer(uint32_t indiceBuffer);
         uint32_t bufferLRU();

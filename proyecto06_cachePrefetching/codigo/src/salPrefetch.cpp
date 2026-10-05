@@ -1,4 +1,3 @@
-//!--- En desarrollo ---!
 #include <iostream>
 #include <cstdint>
 #include <vector>
@@ -39,7 +38,7 @@ bool PrefetchSal::logicaPrefetch(uint32_t pc, uint32_t dir) {
         if (tablaRPT[i].validez && tablaRPT[i].tag == pc) {
             actualizarCont(i);
             if (tablaRPT[i].confidence == 0) { // Esta en estado "initial".
-                tablaRPT[i].lastStride = dir - tablaRPT[i].lastAddress;
+                tablaRPT[i].lastStride = (int32_t)dir - (int32_t)tablaRPT[i].lastAddress;
                 tablaRPT[i].lastAddress = dir;
                 tablaRPT[i].confidence = 1; // Pasa a estado transient.
                 return false;
