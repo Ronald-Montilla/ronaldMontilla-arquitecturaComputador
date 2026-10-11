@@ -1,0 +1,174 @@
+\documentclass[12pt, a4paper]{article}
+
+% Paquetes básicos
+% Para usar caracteres especiales como la eñe y la tilde.
+\usepackage[utf8]{inputenc}
+% Para establecer el idioma del documento:
+\usepackage[spanish]{babel}
+% Para establecer los margenes de la hoja:
+\usepackage[margin=2.5cm]{geometry}
+% Para mostrar codigos de lenguajes de programacion esteticos:
+\usepackage{listings}
+\usepackage{xcolor}
+% Para controlar la sangría y el espaciado entre parrafos.
+\usepackage{parskip}
+% Para hacer el indice dinámico.
+\usepackage{hyperref}
+
+% 1. Definimos el lenguaje MIPS32 formalmente
+\lstdefinelanguage{MIPS32}{
+    % Lista de instrucciones comunes (Keywords) que quieres colorear en azul
+    morekeywords={
+        lw, sw, lb, sb, la, li, lui,
+        add, addi, addiu, addu, sub, subu,
+        and, andi, or, ori, xor, xori, nor,
+        sll, srl, sra,
+        beq, bne, bltz, bgtz, blez, bgez,
+        j, jal, jr, jalr,
+        syscall, move, nop, slt
+    },
+    sensitive=true,                   % MIPS es sensible a mayúsculas/minúsculas
+    morecomment=[l]{\#},             % Los comentarios empiezan con # hasta el fin de la línea
+    morestring=[b]"                  % Las cadenas de texto van entre comillas dobles
+}
+
+% 2. Aplicamos la configuración estética global
+\lstset{
+    language=MIPS32,                  % Establecemos MIPS32 como el lenguaje por defecto
+    backgroundcolor=\color{gray!5},   % Fondo gris muy claro
+    basicstyle=\ttfamily\small,       % Fuente monoespaciada
+    breaklines=true,                  % Ajuste de línea automático
+    captionpos=b,
+    commentstyle=\color{green!60!black}, % Comentarios en verde oscuro
+    keywordstyle=\color{blue}\bfseries,  % Instrucciones en azul y negrita
+    stringstyle=\color{purple},       % Cadenas de texto en morado
+    numbers=left,                     % Números de línea a la izquierda
+    numberstyle=\tiny\color{gray},
+    frame=single,                     % Caja contenedora
+    showstringspaces=false
+}
+
+\title{tallerUno}
+\author{Ronald Montilla}
+\date{July 2026}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering % Centra todo el texto de la portada
+
+    % Encabezado
+    {\bfseries\LARGE Universidad de Carabobo} \\[0.4cm]
+    {\LARGE Facultad Experimental de Ciencias y Tecnología} \\[0.2cm]
+    {\LARGE Departamento de Computación} \\[1.5cm]
+    
+
+    % \includegraphics[width=0.3\textwidth]{logo_universidad.png} \\[1cm]
+    
+    \vfill
+
+    % Titulo
+    {\bfseries\Huge Práctica de Laboratorio Número 3} \\[0.5cm]
+    
+    \vfill
+    
+    % Datos
+    \vfill
+    \begin{tabular}[t]{l}
+        \large\textbf{Profesor:} \\
+        \large José Canache \\
+        \large\textbf{Arquitectura del Computador}
+    \end{tabular}
+    \hfill
+    \begin{tabular}[t]{r}
+        \large\textbf{Autor:} \\
+        \large Ronald Montilla \\
+        \large C.I. 32.011.453
+    \end{tabular}
+
+    {2 de Octubre de 2026}
+    
+\end{titlepage}
+\newpage 
+\tableofcontents
+\newpage
+\section{La entrada/salida Mapeada en Memoria}
+\subsection{La estrategia del mapeo de memoria y su región en la memoria principal}
+La estrada/salida mapeada en memoria(memory-mapped I/O) es el método estándar en la actualidad que usan la mayoría de procesadores para comunicarse con los dispositivos de entrada/salida, esto funciona mediante el usó de una parte del espacio de direcciones para asociar las direcciones y registros de los periféricos de entrada/salida con el procesador. Es decir, se asignan direcciones de este espacio global directamente a los dispositivos periféricos.
+
+Ahora bien, surge una pregunta muy importante sobre este método de comunicación entre el procesador y los dispositivos de estrada/salida, ¿En qué región de memoria se suelen mapear los dispositivos? La respuesta es que por convención se mapean las direcciones de la región más extrema del espacio de memoria, tanto para simplificar procesos del procesador como para proteger los datos de los dispositivos que están mapeados en las direcciones de está región, en resumen, la región en la que se mapean estas direcciones es la región más extrema(las ultimas) del espacio de memoria. 
+
+\subsection{Implicaciones de las instrucciones lw y sw}
+¿Qué implicaciones tiene para las instrucciones lw y sw? Estas instrucciones son muy importantes y representan unas de las grandes ventajas del método memory-mapped I/O, y es que debemos saber que para métodos diferentes como el isolated I/O existen instrucciones específicas y exclusiva para interactuar con las direcciones de los periféricos, en la entrada/salida mapeada en la dirección esto no pasa debido a que las mismas instrucciones usadas para leer o escribir en la memoria principal pueden ser usadas para leer o escribir en las direcciones mapeadas de los periféricos, esto representa grandes ventajas de portabilidad que veremos más adelante.
+
+\section{Diferencias entre memory-mapped I/0 y port-mapped I/O}
+La diferencia entre entrada/salida mapeada en memoria(memory-mapped) y la entrada/salida por puertos(port-mapped) radica principalmente en el espacio de direcciones que emplean. Mientras un método(memory-mapped) usa una parte del espacio general de direcciones de la memoria, el otro(port-mapped) emplea un espacio de direcciones de E/S separado y no las direcciones del espacio de direcciones de la memoria, debido a que las direcciones viven en lugares diferentes todo cambia, para mapeo de memoria los datos viajan por los mismos buses, pero es un hardware externo a la CPU (el decodificador del bus) el que intercepta la dirección y sabe cuándo rutearla hacia un periférico y cuándo hacia la RAM. Pero con el mapeo de puerto es diferente porque el procesador requiere nuevas señales de control para indicar que una dirección pertenece a un periférico y cuando pertenece a la memoria principal. Solo con estas diferencias entre ambos métodos se producen muchas ventajas y desventajas para ambos métodos.
+\newpage
+En el pasado los procesadores tenían arquitecturas con capacidades muy limitadas, tenían rangos de direcciones muy limitadas, por ello muy pocos procesadores empleaban el mapeo de memoria para los periféricos, pero gracias a los grandes avances en arquitectura de procesadores todo cambió y los procesadores de la actualidad emplean más este método por sus múltiples ventajas para algunas aplicaciones.
+\subsection{Ventajas y Desventajas}
+\textbf{Memory-mapped I/O: }
+Como ya sabemos, este método usa una parte del espacio de direcciones de la memoria para los dispositivos de entrada y salida, este es el método más usado por los procesadores modernos, y con esto nos podemos hacer una idea de las grandes ventajas que puede traer este método a los procesadores que la usen, pero así como tiene muchas ventajas, también tiene desventajas.
+
+\textbf{Ventajas:}
+\begin{itemize}
+    \item Mayor facilidad para interactuar con los periféricos ya que este método permite el usó de las mismas instrucciones que se emplean para manipular datos de la memoria para el manejo de los periféricos de E/S como lo son las instrucciones lw y sw.
+    \item Mayor rapidez a la hora de acceder a los dispositivos de entrada y salida ya que se emplean los mismos mecanismos que para acceder a la memoria principal.
+\end{itemize}
+\textbf{Desventajas:}
+\begin{itemize}
+    \item Reducción del espacio de direcciones disponible para la memoria principal, ya que un bloque del mapa lógico queda reservado exclusivamente para los periféricos.
+    \item Menor capacidad de periféricos porque posee un espacio de direcciones compartido entre los dispositivos de entrada/salida y la memoria principal.
+\end{itemize}
+\textbf{Port-mapped I/O: }
+Los procesadores con port-mapped establecen puertos entre los dispositivos E/S, de está manera acceden a ellos. Pero requieren de señales de control e instrucciones especializadas y exclusivas.
+
+\textbf{Ventajas:}
+\begin{itemize}
+    \item Al usar espacio de direcciones aparte del espacio de direcciones de la memoria, este método no quita capacidad de almacenamiento a la memoria principal.
+    \item Espacio de direcciones propio, lo que permite una mayor flexibilidad con la cantidad o manipulación de los periféricos.
+\end{itemize}
+\textbf{Desventajas:}
+\begin{itemize}
+    \item Requieren instrucciones especializadas para acceder a estos periféricos lo que a sus sistemas menos portables y que los programados deban aprender y familiarizarse con nuevas instrucciones.
+    \item Nuevas señales de control lo que hace a los procesadores más complejos.
+    \item La programación se vuelve más compleja.
+\end{itemize}
+\section{La filosofía de MIPS32 y su influencia a la hora de utilizar memory-mapped I/O}
+La filosofía de MIPS32 es RISC(Reduced Instruction Set Computer) que básicamente busca hacer todo lo más simple posible, esto se traduce en usar la menor cantidad de instrucciones en su arquitectura. La entrada/salida por puerto requiere usar espacios de direcciones separadas del espacio de direcciones de la memoria RAM, y para manipular datos de estos puertos no se emplean las mismas instrucciones que se emplean para manipular la memoria RAM. Se usan instrucciones específicas y exclusivas para esos puertos. Algunas de estas instrucciones son IN y OUT que permiten almacenar y leer datos. ¿Por qué MIPS32 utiliza principalmente memory-mapped I/O? Utiliza principalmente la entrada/salida mapeada en memoria ya que encaja perfectamente con su filosofía al reutilizar instrucciones como lw y sw en vez de tener que utilizar más instrucciones como IN y OUT, aparte de emplear los mismos mecanismos que emplea a la hora de accerder o ingresar datos en la memoria RAM, también facilita la seguridad de los datos de los periféricos al mapear las direcciones de los perifericos en el extremo del campo de direcciones.
+\section{Problemas que surgen y sus soluciones}
+\subsection{Solapamiento de periféricos}
+En las arquitecturas que emplean el mapeo de memoria pueden surgen varios problemas e inconvenientes, uno de ellos es el solapamiento que se produce cuando dos dispositivos periféricos emplean la misma dirección, cuando la CPU intenté comunicarse con estos periféricos puede hacerlo con el incorrecto, puede provocar un cortocircuito si ambos periféricos intentan comunicarse al mismo tiempo con la CPU y también puede leer o almacenar datos incorrectos, pero esto es un caso hipotético y tiene sus soluciones. Las soluciones para este primer caso son muy inteligentes, la placa base tiene circuitos lógicos que toman la dirección del bus y la procesan para indicar mediante un pin(Chip Select) el dispositivo exacto a usar, de tal manera que uno se activa y el otro se mantiene desactivado evitando acceder a dispositivos y datos incorrectos. Otra cosa que no permite que esto suceda es la asignación dinámica de direcciones. Cuando se arranca un PC, el sistema operativo o la BIOS interactúan con cada dispositivo de entrada/salida para verificar su consumo exacto de direcciones y asignarle dinámicamente rangos de direcciones específicas a cada dispositivo, de tal manera que cada dispositivo tenga su propio rango de direcciones.
+
+\subsection{¿Acceso a memoria RAM o periférico?}
+Otra cuestión es la siguiente, ¿Como sabe el hardware si debe acceder a un dispositivo periférico o a la memoria RAM? Claro, si la CPU envía una dirección por el bus para obtener su dato, ¿Como el hardware puede determinar si esa dirección pertenece a una variable en Memoria RAM o a un dato de un dispositivo de entrada/salida? Este trabajo lo hace una parte de hardware externo al procesador, lo hace el \textit{decodificador de direcciones}, cuando el procesador envía una dirección para leer su dato, este no sabe si ese dato viene de la memoria RAM o de un dispositivo periférico porque su trabajo consiste en enviar la señal, recibir el dato y procesarlo. Pero cuando envía está dirección por el bus de direcciones, el decodificador de direcciones la toma y lee sus bits más significativos con la tarea de determinar si esa dirección pertenece a la región de direcciones más externa, si pertenece a esa región significa que la dirección pertenece a un periférico y mediante un pin(Chip Select) manda una señal para deshabilitar la memoria RAM y obtener el dato del lugar correcto, es decir, del dispositivo de entrada/salida. Si no pertenece a la región más externa significa que el dato que la CPU pidió, proviene de la memoria RAM. En resumen, es el \textit{decodificador de direcciones}, el que determina si se debe leer o guardar un dato en la memoria principal o en un dispositivo de entrada/salida.
+
+\subsection{Seguridad}
+En cuanto a la seguridad de los datos, ¿es posible que un programa sin privilegios acceda a un periférico mapeado en memoria? La respuesta a esto es que en la actualidad es casi imposible, gracias al estricto trabajo conjunto entre hardware y software. 
+
+En primer lugar, los sistemas operativos asignan a cada programa bloques de memoria virtual. Cuando un programa interactúa con una de estas direcciones virtuales, una unidad de hardware integrada en el procesador (\textit{La Unidad de Manejo de Memoria - MMU}) la traduce en tiempo real a la dirección física correspondiente. De está manera, un programa nunca interactúa con las direcciones físicas reales del hardware, sino que lo hace con direcciones "falsas" o aisladas que le asigna el sistema operativo. Aparte de la virtualización, al momento de crear estas tablas de direcciones, el sistema operativo implementa niveles de seguridad. A los programas comunes se les asigna un \textit{modo usuario}, el cual tiene permisos sumamente restringidos. Por el contrario, el \textit{modo kernel} (que poseen el procesador y el núcleo del sistema operativo) tiene acceso absoluto y total libertad sobre el hardware y los diferentes dispositivos de E/S. El sistema operativo marca las direcciones físicas de los periféricos para que exijan privilegios de modo kernel. Es por todo lo antes mencionado que, si un programa en modo usuario intenta adivinar y acceder a los datos de un periférico o actuar de forma maliciosa sobre estos, la MMU detectará la falta de privilegios y abortará la instrucción. El hardware bloqueará el acceso al bus y notificará inmediatamente al sistema operativo para que detenga o cierre el programa malicioso.
+
+\subsection{Técnicas de esperas}
+\subsubsection{Polling}
+Ante un procesador que solicita un dato pero aún no lo tiene disponible surge una de las principales técnicas de espera, \textit{la espera activa(polling)} que consiste en atrapar al procesador en un bucle hasta que obtenga el dato, esto estaba bien para procesadores que solo realizan una tarea, pero para procesadores que realizan más de una, incluso millones de tareas, está técnica no es la ideal por el tiempo que puede tomar esperar este dato y porque lógicamente no es eficiente. Para solucionar este problema surgen nuevas técnicas que hoy en día son empleadas por los procesadores moderno.
+\subsubsection{Entrada/Salida por interrupciones}
+En la actualidad los procesadores realizan miles de tareas al mismo tiempo y no pueden perder eficiencia y ciclos de reloj esperando datos, es por ello que los procesadores usan técnicas de interrupciones. Cuando un procesador requiere de un dato de un periférico pero no lo tiene disponible aún, este no lo espera sino que hace las demás tareas hasta que el periférico tiene el dato disponible para ser llevado ante el procesador y mediante una \textit{Línea de Interrupción} el periférico envía una señal al procesador interrumpiendo las tareas que estaba haciendo para que tome el dato y lo procese, luego de procesar el dato volverá a donde estaba.
+\subsubsection{Acceso Directo a Memoria}
+Las interrupciones a la CPU son buenas en la mayoría de los casos, pero cuando se producen demasiadas de estas la eficiencia se pierde, ante esto surge como solución el \textit{Acceso Directo a Memoria(DMA)}, un componente integrado en la placa base que permite mover datos de un componente a otro sin la intervención a cada momento de la CPU. Esto permite que antes el problema de movilizar y esperar grandes cantidades de datos de los periféricos de E/S el DMA se encargue mientras la CPU realiza otras tareas, potenciando la eficiencia a la hora de esperar y mover datos desde los periféricos a la RAM.
+\section{Análisis y Discusión de los Resultados}
+En los archivos adjuntos(sensorLuminosidad\texttt{.asm} y tensionArterial\texttt{.asm}) se implementó en lenguaje ensamblador MIPS32 el controlador para un sensor de luminosidad y un módulo para medir la tensión arterial, y evidenció lo siguiente:
+
+Se pudo observar la influencia de la filosofía RISC y el usó del mapeo en la memoria al usar las instrucciones \textit{sw} y \textit{lw} para acceder o guardar datos en los registros de los periféricos pero que originalmente se usan para manipular datos de la memoria RAM. Gracias a esto, la implementación de estos periféricos fue más fácil al no tener que manipular instrucciones específicas para los datos de los periféricos.
+
+En ambas implementaciones se usó la espera activa(polling), en el sensor de luminosidad la espera mantuvo en espera al procesador hasta que el registro mapeado en memoria(luzEstado) cambiara su valor de 0 a 1 o -1 para luego continuar con la demás lógica. En el módulo para la tensión arterial también se empleo la espera activa para mantener al procesador en un bucle mientras el registro mapeado en memoria(tensionEstado) no cambie de 0(midiendo) a 1(resultados listos). La espera activa en estos dispositivos es correcta pero también se comprobó que al ser una simulación se debían cambiar los datos de los registros manualmente, en MARS esto se logra porque es un entorno educativo, pero si realmente el usuario accediera a un registro de un dispositivo periférico mapeado en memoria la Unidad de Manejo de Memoria bloquearía este intento al no poseer los permisos necesarios o interpretarlo como algo ilegal.
+
+En resumen, fue posible constatar la implementación de los controladores de los periféricos correctamente, pero debido a que MARS es un entorno educativo, se observaron limitaciones al tener que interactuar directamente con los datos, pero se logró observar las diferentes implicaciones del mapeo de memoria.
+\newpage
+\section{Bibliografía}
+\begin{itemize}
+    \item Anfieo. 2025/07/03. ¿Qué diferencia hay entre la E/S mapeada en memoria y la E/S mapeada en puertos?. Medium. \url{https://www.geeksforgeeks.org/computer-organization-architecture/memory-mapped-i-o-and-isolated-i-o/}
+    \item GeeksForGeeks. 2025/11/07. E/S mapeadas en memoria y E/S aisladas. GeeksForGeeks. \url{https://www.geeksforgeeks.org/computer-organization-architecture/memory-mapped-i-o-and-isolated-i-o/}
+    \item David A. Patterson, John L. Hennessy (2011). Estructura y diseño de computadores. Editorial Reverté, S. A.
+    \item E/S mapeada en memoria. (2026, 2 de octubre). En \textit{Wikipedia}. \url{https://es.wikipedia.org/wiki/E/S_mapeada_en_memoria}
+\end{itemize}
+
+\end{document}
