@@ -1,4 +1,3 @@
-//!--- En desarrollo ---!
 #include <iostream>
 #include <cstdint>
 #include <fstream>

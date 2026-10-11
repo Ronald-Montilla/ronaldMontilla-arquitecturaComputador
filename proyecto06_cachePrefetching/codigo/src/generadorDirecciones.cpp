@@ -18,7 +18,7 @@ int main() {
     }
 
     std::string linea;
-    // Saltar las líneas de comentarios (empiezan con %)
+    // Saltar las lineas de comentarios (empiezan con %)
     while (std::getline(archivo, linea)) {
         if (linea.empty()) {
             continue;

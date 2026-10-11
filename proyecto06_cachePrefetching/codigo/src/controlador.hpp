@@ -1,4 +1,3 @@
-//!--- En desarrollo ---!
 #ifndef MENU_H
 #define MENU_H
 #define NUMERO_BUFFER 64

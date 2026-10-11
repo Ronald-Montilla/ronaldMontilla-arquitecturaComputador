@@ -48,18 +48,15 @@ void Cache::actualizarContadores(const uint32_t conjunto, const int via) {
 }
 
 void Cache::agregarDato(const uint32_t dir) {
-    // Recibe una direccion de 32 bits y la busca en la cache. Retorna true(hit) o false(miss).
     uint32_t conjuntoSel = (dir >> bitsOffset) & ((1U << bitsConjunto) - 1);
     uint32_t tagSel = (dir >> (bitsOffset + bitsConjunto));
-    int band = 0, indice, mayor = 0;
+    int indice = 0, mayor = 0;
     for (int i = 0; i < numVias; i++) {
         if (!conjuntos[conjuntoSel].vias[i].bitValidez) {
-            conjuntos[conjuntoSel].vias[i].cont = numVias;
             actualizarContadores(conjuntoSel, i);
             conjuntos[conjuntoSel].vias[i].bitValidez = true;
             conjuntos[conjuntoSel].vias[i].tag = tagSel;
-            band = 1;
-            break;
+            return;
         } else {
             if (conjuntos[conjuntoSel].vias[i].cont >= mayor) {
                 mayor = conjuntos[conjuntoSel].vias[i].cont;
@@ -67,11 +64,9 @@ void Cache::agregarDato(const uint32_t dir) {
             }
         }
     }
-    if (band == 0) {
-            actualizarContadores(conjuntoSel, indice);
-            conjuntos[conjuntoSel].vias[indice].bitValidez = true;
-            conjuntos[conjuntoSel].vias[indice].tag = tagSel;
-    }
+    actualizarContadores(conjuntoSel, indice);
+    conjuntos[conjuntoSel].vias[indice].bitValidez = true;
+    conjuntos[conjuntoSel].vias[indice].tag = tagSel;
 }
 
 bool Cache::buscarDato(const uint32_t pc, const uint32_t dir) {
