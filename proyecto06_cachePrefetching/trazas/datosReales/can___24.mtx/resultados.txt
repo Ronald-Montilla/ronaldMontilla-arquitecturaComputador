@@ -1,0 +1,16 @@
+Resultados obtenidos: 
+
+- Cache sin Prefetch: 
+      * Numero de hits: 764974
+      * Numero de miss: 14475
+      * Tasa de acierto: 98.1429%
+- Cache con Prefetch Secuencial: 
+      * Numero de hits: 771375
+      * Numero de miss: 8074
+      * Tasa de acierto: 98.9641%
+      * Cobertura: 44.2211%
+- Cache con Prefetch de Salto: 
+      * Numero de hits: 764949
+      * Numero de miss: 14500
+      * Tasa de acierto: 98.1397%
+      * Cobertura: -0.172712%

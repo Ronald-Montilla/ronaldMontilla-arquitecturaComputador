@@ -1,0 +1,1 @@
+valgrind --tool=lackey --trace-mem=yes ./generador > trazas_reales.txt 2>&1
