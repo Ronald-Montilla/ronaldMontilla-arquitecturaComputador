@@ -1,9 +1,13 @@
 .data
 	estado: .byte 0
 	men1: .asciiz "Semaforo en verde, esperando pulsador\n"
-	men2: .asciiz "Pulsador activado: en 20 segundos, el semaforo cambiara a amarillo\n"
-	men3: .asciiz "Semaforo en amarillo,en 10 segundos, semaforo en rojo\n"
-	men4: .asciiz "Semaforo en rojo, en 30 segundos, semaforo en verde\n"
+	men2: .asciiz "Pulsador activado: el semaforo cambiara a amarillo en: "
+	men3: .asciiz "Semaforo en amarillo, cambiara a rojo en: "
+	men4: .asciiz "Semaforo en rojo, cambiara a verde en: "
+	menAux: .asciiz " Segundos\n"
+	timer_1: .word 2000
+	timer_2: .word 2000
+	timer_3: .word 2000
 .text
 .globl main
 main:
@@ -48,10 +52,18 @@ pulsador:
 	la $a0, men2
 	li $v0, 4
 	syscall
-	li $t0, 20000 # Cronometro en 20 segundos.
+	lw $t0, timer_1 # Cronometro a amarillo.
 	li $v0, 30
 	syscall
 	move $t1, $a0 # Tiempo inicial
+	# Muestro los segundos del cronometro:
+	li $v0, 1
+	move $a0, $t0
+	div $a0, $a0, 1000
+	syscall
+	li $v0, 4
+	la $a0, menAux
+	syscall
 	buclePulsador:
 		li $v0, 30
 		syscall
@@ -67,10 +79,18 @@ amarillo:
 	la $a0, men3
 	li $v0, 4
 	syscall
-	li $t0, 10000 # Cronometro en 10 segundos.
+	lw $t0, timer_2 # Cronometro a rojo.
 	li $v0, 30
 	syscall
 	move $t1, $a0 # Tiempo inicial
+	# Muestro los segundos del cronometro:
+	li $v0, 1
+	move $a0, $t0
+	div $a0, $a0, 1000
+	syscall
+	li $v0, 4
+	la $a0, menAux
+	syscall
 	bucleAmarillo:
 		li $v0, 30
 		syscall
@@ -86,10 +106,18 @@ rojo:
 	la $a0, men4
 	li $v0, 4
 	syscall
-	li $t0, 30000 # Cronometro en 30 segundos.
+	lw $t0, timer_3 # Cronometro a verde.
 	li $v0, 30
 	syscall
 	move $t1, $a0 # Tiempo inicial
+	# Muestro los segundos del cronometro:
+	li $v0, 1
+	move $a0, $t0
+	div $a0, $a0, 1000
+	syscall
+	li $v0, 4
+	la $a0, menAux
+	syscall
 	bucleRojo:
 		li $v0, 30
 		syscall

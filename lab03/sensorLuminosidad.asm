@@ -2,13 +2,39 @@
 	luzControl: .word 0
 	luzEstado: .word 0
 	luzDatos: .word 0
+	minLuminosidad: .word 0
+	maxLuminosidad: .word 1023
+	men1: .asciiz "Valor de luminosidad: "
+	men2: .asciiz "Se produjo un error de hardware."
 .text
 .globl main
 main:
 	jal inicializarSensorLuz
-	jal leerLuminosidad
-	li $v0, 10
+	# Cargamos un valor aleatorio en el registro de datos.
+	lw $a0, minLuminosidad
+	lw $a1, maxLuminosidad
+	addi $a1, $a1, 1
+	li $v0, 42
 	syscall
+	sw $a0, luzDatos
+	jal leerLuminosidad
+	# Verificamos que no se produjo un error de hardware
+	beq $v1, $zero, mostrarValor
+		li $v0, 4
+		la $a0, men2
+		syscall
+		j salir
+	mostrarValor:
+		move $t0, $v0
+		li $v0, 4
+		la $a0, men1
+		syscall
+		li $v0, 1
+		move $a0, $t0
+		syscall
+	salir:
+		li $v0, 10
+		syscall
 	
 inicializarSensorLuz:
        	addi $sp, $sp, -4

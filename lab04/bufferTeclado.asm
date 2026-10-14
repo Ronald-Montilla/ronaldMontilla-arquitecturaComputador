@@ -3,7 +3,8 @@
 	maximo: .word 200
 	head: .word 0
 	tail: .word 0
-	contador: .word 0 
+	contador: .word 0
+	tiempo: .word 20000 
 .text
 .globl main
 main:
@@ -25,7 +26,7 @@ main:
 	syscall	
 programaPrincipal:
 	#Iniciamos el cronometro de 20 segundos
-	li $t0, 20000 # Tiempo maximo del cronometro
+	lw $t0, tiempo # Tiempo maximo del cronometro
 	li $v0, 30
 	syscall
 	move $t1, $a0 #Tiempo inicial
