@@ -8,7 +8,6 @@
 class Prefetch {
     protected:
         uint32_t tamB, bitsOffsetPagina;
-
         bool limitePagina(uint32_t numPagina, uint32_t dir);
     public:
         Prefetch(uint32_t _tamB);

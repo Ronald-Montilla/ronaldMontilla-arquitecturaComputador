@@ -1,3 +1,5 @@
+// Generador de direcciones para las matrices de Matriz Market
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -37,8 +39,8 @@ int main() {
     // Cargar la matriz en memoria
     std::vector<Elemento> matriz(no_nulos);
     for (int i = 0; i < no_nulos; i++) {
-        archivo >> matriz[i].fila >> matriz[i].columna;// >> matriz[i].valor;
-        matriz[i].valor = 1.0;
+        archivo >> matriz[i].fila >> matriz[i].columna >> matriz[i].valor;
+        //matriz[i].valor = 1.0;
         // Matrix Market empieza a contar desde 1, pero C++ desde 0:
         matriz[i].fila--; 
         matriz[i].columna--;
